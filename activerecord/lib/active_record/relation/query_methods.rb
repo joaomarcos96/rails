@@ -510,6 +510,7 @@ module ActiveRecord
     #   User.select([:id, :first_name]).group(:id, :first_name).first(3)
     #   # => [#<User id: 1, first_name: "Bill">, #<User id: 2, first_name: "Earl">, #<User id: 3, first_name: "Beto">]
     def group(*args)
+      p
       check_if_method_has_arguments!(__callee__, args)
       spawn.group!(*args)
     end
