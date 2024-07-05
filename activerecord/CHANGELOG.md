@@ -2,12 +2,14 @@
 
     ```ruby
     Product.joins(:items).group(:id).merge(Item.group(:id)).count
-    # SELECT COUNT(*) AS "count_all", "products"."id" AS "products_id" FROM "products"
+    # SELECT COUNT(*) AS "count_all", "products"."id" AS "products_id"
+    # FROM "products"
     # INNER JOIN "items" ON "items"."product_id" = "products"."id"
     # GROUP BY "products"."id", "items"."id"
 
     Product.joins(:items).group(:id).merge(Item.group(:title).regroup(:id)).count
-    # SELECT COUNT(*) AS "count_all", "products"."id" AS "products_id" FROM "products"
+    # SELECT COUNT(*) AS "count_all", "products"."id" AS "products_id"
+    # FROM "products"
     # INNER JOIN "items" ON "items"."product_id" = "products"."id"
     # GROUP BY "products"."id", "items"."id"
     ```
