@@ -572,7 +572,21 @@ module ActiveRecord
     end
 
     def group!(*args) # :nodoc:
-      self.group_values += args
+      raw_group!(*args)
+      args = arel_columns(args)
+      self.group_values |= args
+      self
+    end
+
+    def only_group!(*args) # :nodoc
+      args = arel_columns(args)
+      self.group_values |= args
+      self
+    end
+
+    def raw_group!(*args) # :nodoc:
+      self.raw_group_values ||= FROZEN_EMPTY_ARRAY
+      self.raw_group_values += args
       self
     end
 
@@ -585,7 +599,8 @@ module ActiveRecord
     #   # SELECT `posts`.`*` FROM `posts` GROUP BY `posts`.`title`
     #
     # This is short-hand for <tt>unscope(:group).group(fields)</tt>.
-    # Note that we're unscoping the entire group statement.
+    # Note that we're unscoping the entire group statement, except when used inside a merge relation,
+    # in which case it will unscope the merged relation only.
     def regroup(*args)
       check_if_method_has_arguments!(__callee__, args)
       spawn.regroup!(*args)
@@ -593,6 +608,8 @@ module ActiveRecord
 
     # Same as #regroup but operates on relation in-place instead of copying.
     def regroup!(*args) # :nodoc:
+      self.raw_group_values = args
+      args = arel_columns(args)
       self.group_values = args
       self
     end
@@ -1736,8 +1753,8 @@ module ActiveRecord
         arel.having(having_clause.ast) unless having_clause.empty?
         arel.take(build_cast_value("LIMIT", connection.sanitize_limit(limit_value))) if limit_value
         arel.skip(build_cast_value("OFFSET", offset_value.to_i)) if offset_value
-        arel.group(*arel_columns(group_values.uniq)) unless group_values.empty?
 
+        build_group(arel)
         build_order(arel)
         build_with(arel)
         build_select(arel)
@@ -2011,6 +2028,11 @@ module ActiveRecord
       def build_order(arel)
         orders = order_values.compact_blank
         arel.order(*orders) unless orders.empty?
+      end
+
+      def build_group(arel)
+        groups = group_values.compact_blank
+        arel.group(*groups) unless groups.empty?
       end
 
       VALID_DIRECTIONS = [:asc, :desc, :ASC, :DESC,

@@ -1,3 +1,19 @@
+*   Allow `group` to be used inside `merge`.
+
+    ```ruby
+    Product.joins(:items).group(:id).merge(Item.group(:id)).count
+    # SELECT COUNT(*) AS "count_all", "products"."id" AS "products_id" FROM "products"
+    # INNER JOIN "items" ON "items"."product_id" = "products"."id"
+    # GROUP BY "products"."id", "items"."id"
+
+    Product.joins(:items).group(:id).merge(Item.group(:title).regroup(:id)).count
+    # SELECT COUNT(*) AS "count_all", "products"."id" AS "products_id" FROM "products"
+    # INNER JOIN "items" ON "items"."product_id" = "products"."id"
+    # GROUP BY "products"."id", "items"."id"
+    ```
+
+    *João Marcos S B de Moraes*
+
 *   `ActiveRecord::Encryption::Encryptor` now supports a `:compressor` option to customize the compression algorithm used.
 
     ```ruby

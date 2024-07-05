@@ -500,7 +500,7 @@ module ActiveRecord
       end
 
       def execute_grouped_calculation(operation, column_name, distinct) # :nodoc:
-        group_fields = group_values
+        group_fields = raw_group_values
         group_fields = group_fields.uniq if group_fields.size > 1
 
         if group_fields.size == 1 && group_fields.first.respond_to?(:to_sym)
@@ -537,7 +537,7 @@ module ActiveRecord
           }
 
           relation = except(:group).distinct!(false)
-          relation.group_values  = group_fields
+          relation.group_values  = associated ? group_fields : group_values
           relation.select_values = select_values
 
           result = skip_query_cache_if_necessary do
